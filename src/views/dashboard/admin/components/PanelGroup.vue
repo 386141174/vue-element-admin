@@ -9,7 +9,7 @@
           <div class="card-panel-text">
             用户人数
           </div>
-          <count-to :start-val="0" :end-val="102400" :duration="2600" class="card-panel-num" />
+          <count-to :start-val="0" :end-val="userAmount" :duration="2600" class="card-panel-num" />
         </div>
       </div>
     </el-col>
@@ -20,7 +20,7 @@
         </div>
         <div class="card-panel-description">
           <div class="card-panel-text">
-            Messages
+            库存数量
           </div>
           <count-to :start-val="0" :end-val="81212" :duration="3000" class="card-panel-num" />
         </div>
@@ -33,9 +33,9 @@
         </div>
         <div class="card-panel-description">
           <div class="card-panel-text">
-            Purchases
+            现金流水
           </div>
-          <count-to :start-val="0" :end-val="9280" :duration="3200" class="card-panel-num" />
+          <count-to :start-val="0" :end-val="20000" :duration="3200" class="card-panel-num" />
         </div>
       </div>
     </el-col>
@@ -46,7 +46,7 @@
         </div>
         <div class="card-panel-description">
           <div class="card-panel-text">
-            Shoppings
+            交易订单
           </div>
           <count-to :start-val="0" :end-val="13600" :duration="3600" class="card-panel-num" />
         </div>
@@ -57,16 +57,40 @@
 
 <script>
 import CountTo from 'vue-count-to'
+import {showClientUsers} from '@/api/remote-search'
 
 export default {
   components: {
     CountTo
   },
+  data(){
+    return {
+      userAmount:null,
+      inventory:null,
+      CashFlow:'20000',
+      order:''
+    }
+  },
   methods: {
     handleSetLineChartData(type) {
       this.$emit('handleSetLineChartData', type)
+
+    },
+    showusers(){
+      showClientUsers().then( (result) =>{
+        console.log("1212")
+        this.userAmount = result.data
+      })
+
+
     }
-  }
+
+
+  },
+  created() {
+    this.showusers()
+  },
+
 }
 </script>
 

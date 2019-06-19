@@ -4,22 +4,22 @@
       <img src="https://wpimg.wallstcn.com/e7d23d71-cf19-4b90-a1cc-f56af8c0903d.png">
     </div>
     <div style="position:relative;">
-      <pan-thumb :image="avatar" class="panThumb" />
+<!--      <pan-thumb :image="avatar" class="panThumb" />-->
       <mallki class-name="mallki-text" text="vue-element-admin" />
       <div style="padding-top:35px;" class="progress-item">
-        <span>Vue</span>
+        <span>客户满意程度</span>
         <el-progress :percentage="70" />
       </div>
       <div class="progress-item">
-        <span>JavaScript</span>
+        <span>差评</span>
         <el-progress :percentage="18" />
       </div>
       <div class="progress-item">
-        <span>Css</span>
+        <span>退货</span>
         <el-progress :percentage="12" />
       </div>
       <div class="progress-item">
-        <span>ESLint</span>
+        <span>目标</span>
         <el-progress :percentage="100" status="success" />
       </div>
     </div>

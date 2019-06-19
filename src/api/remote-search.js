@@ -15,3 +15,11 @@ export function transactionList() {
 
   })
 }
+
+  export function showClientUsers() {
+    return request({
+      url:'/transaction/count',
+      method:'get'
+    })
+  }
+

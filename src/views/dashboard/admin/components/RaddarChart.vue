@@ -68,18 +68,18 @@ export default {
             }
           },
           indicator: [
-            { name: 'Sales', max: 10000 },
-            { name: 'Administration', max: 20000 },
-            { name: 'Information Techology', max: 20000 },
-            { name: 'Customer Support', max: 20000 },
-            { name: 'Development', max: 20000 },
-            { name: 'Marketing', max: 20000 }
+            { name: '发货速度', max: 10000 },
+            { name: '服务评价', max: 20000 },
+            { name: '货物质量', max: 20000 },
+            { name: '配送时间', max: 20000 },
+            { name: '订单新增', max: 20000 },
+            { name: '退货处理', max: 20000 }
           ]
         },
         legend: {
           left: 'center',
           bottom: '10',
-          data: ['Allocated Budget', 'Expected Spending', 'Actual Spending']
+          data: []
         },
         series: [{
           type: 'radar',
