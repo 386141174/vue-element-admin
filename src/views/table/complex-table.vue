@@ -136,10 +136,9 @@ import { parseTime } from '@/utils'
 import Pagination from '@/components/Pagination' // secondary package based on el-pagination
 
 const calendarTypeOptions = [
-  { key: 'CN', display_name: 'China' },
-  { key: 'US', display_name: 'USA' },
-  { key: 'JP', display_name: 'Japan' },
-  { key: 'EU', display_name: 'Eurozone' }
+  { key: 'order_id', display_name: '订单编号' },
+  { key: 'goods_name', display_name: '商品名称' },
+  { key: 'realname', display_name: '客户昵称' }
 ]
 
 // arr to obj, such as { CN : "China", US : "USA" }
