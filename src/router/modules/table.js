@@ -34,7 +34,14 @@ const tableRouter = {
       path: 'complex-table',
       component: () => import('@/views/table/complex-table'),
       name: 'ComplexTable',
-      meta: { title: 'complexTable' }
+      meta: { title: 'complexTable' },
+      // children: [
+      //   {
+      //     path:'mapForGoods',
+      //     component:() => import('@/views/table/mapForGoods'),
+      //     name:"mapForGoods"
+      //   }
+      // ]
     }
   ]
 }

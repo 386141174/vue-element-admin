@@ -64,7 +64,7 @@
       </el-table-column>
       <el-table-column label="Actions" align="center" width="400" class-name="small-padding fixed-width">
         <template slot-scope="{row}">
-          <el-button type="primary" size="mini" @click="handleUpdate(row)">
+          <el-button type="primary" size="mini" @click="handleUpdate()">
             {{ $t('table.edit') }}
           </el-button>
           <el-button v-if="row.status!='published'" size="mini" type="success" @click="handleModifyStatus(row,'published')">
@@ -83,7 +83,10 @@
     <pagination v-show="total>0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit" @pagination="getList" />
 
     <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible">
-      <el-form ref="dataForm" :rules="rules" :model="temp" label-position="left" label-width="70px" style="width: 400px; margin-left:50px;">
+      <div id="allmap" v-show="ifShowMap">
+
+      </div>
+      <el-form ref="dataForm" :rules="rules" :model="temp" label-position="left" label-width="70px" style="width: 400px; margin-left:50px;" v-show="ifShowForm">
         <el-form-item :label="$t('table.type')" prop="type">
           <el-select v-model="temp.type" class="filter-item" placeholder="Please select">
             <el-option v-for="item in calendarTypeOptions" :key="item.key" :label="item.display_name" :value="item.key" />
@@ -117,7 +120,7 @@
       </div>
     </el-dialog>
 
-    <el-dialog :visible.sync="dialogPvVisible" title="Reading statistics">
+    <el-dialog :visible.sync="dialogPvVisible" title="Reading statistics" >
       <el-table :data="pvData" border fit highlight-current-row style="width: 100%">
         <el-table-column prop="key" label="Channel" />
         <el-table-column prop="pv" label="Pv" />
@@ -166,6 +169,8 @@ export default {
   },
   data() {
     return {
+      ifShowMap:'',
+      ifShowForm:true,
       tableKey: 0,
       list: null,
       total: 0,
@@ -195,8 +200,8 @@ export default {
       dialogFormVisible: false,
       dialogStatus: '',
       textMap: {
-        update: 'Edit',
-        create: 'Create'
+        update: '地图',
+        create: '添加'
       },
       dialogPvVisible: false,
       pvData: [],
@@ -209,9 +214,129 @@ export default {
     }
   },
   created() {
+
     this.getList()
   },
   methods: {
+    creat(){
+      if(this.textMap.update === '地图'){
+        this.ifShowMap = true;
+        this.ifShowForm = false;
+      }
+      // 百度地图API功能
+      var map = new BMap.Map("allmap");
+      map.centerAndZoom(new BMap.Point(116.404, 39.915), 15);
+      var bounds = null;
+      var linesPoints = null;
+      var spoi3 = new BMap.Point(117.216994,39.141368);
+      var spoi1 = new BMap.Point(116.380967,39.913285);    // 起点1
+      var spoi2 = new BMap.Point(116.380967,39.953285);    // 起点2
+      var epoi  = new BMap.Point(116.424374,39.914668);    // 终点
+      var myIcon = new BMap.Icon("http://lbsyun.baidu.com/jsdemo/img/car.png", new BMap.Size(52, 30), {imageOffset: new BMap.Size(0, 0)});
+      function initLine(){
+        bounds = new Array();
+        linesPoints = new Array();
+        map.clearOverlays();                                                    // 清空覆盖物
+        var driving3 = new BMap.DrivingRoute(map,{onSearchComplete:drawLine});  // 驾车实例,并设置回调
+        driving3.search(epoi, spoi1);                                       // 搜索一条线路
+        var driving4 = new BMap.DrivingRoute(map,{onSearchComplete:drawLine});  // 驾车实例,并设置回调
+        driving4.search(epoi, spoi2);
+        var driving5 = new BMap.DrivingRoute(map,{onSearchComplete:drawLine});  // 驾车实例,并设置回调
+        driving5.search(epoi, spoi3);   // 搜索一条线路
+      }
+      function run(){
+        for(var m = 0;m < linesPoints.length; m++){
+          var pts = linesPoints[m];
+          var len = pts.length;
+          var carMk = new BMap.Marker(pts[0],{icon:myIcon});
+          map.addOverlay(carMk);
+          resetMkPoint(1,len,pts,carMk)
+        }
+
+        function resetMkPoint(i,len,pts,carMk){
+          carMk.setPosition(pts[i]);
+          if(i < len){
+            setTimeout(function(){
+              i++;
+              resetMkPoint(i,len,pts,carMk);
+            },10);
+          }
+        }
+
+      }
+      function drawLine(results){
+        var opacity = 0.45;
+        var planObj = results.getPlan(0);
+        var b = new Array();
+        var addMarkerFun = function(point,imgType,index,title){
+          var url;
+          var width;
+          var height
+          var myIcon;
+          // imgType:1的场合，为起点和终点的图；2的场合为车的图形
+          if(imgType == 1){
+            url = "http://lbsyun.baidu.com/jsdemo/img/dest_markers.png";
+            width = 42;
+            height = 34;
+            myIcon = new BMap.Icon(url,new BMap.Size(width, height),{offset: new BMap.Size(14, 32),imageOffset: new BMap.Size(0, 0 - index * height)});
+          }else{
+            url = "http://lbsyun.baidu.com/jsdemo/img/trans_icons.png";
+            width = 22;
+            height = 25;
+            var d = 25;
+            var cha = 0;
+            var jia = 0
+            if(index == 2){
+              d = 21;
+              cha = 5;
+              jia = 1;
+            }
+            myIcon = new BMap.Icon(url,new BMap.Size(width, d),{offset: new BMap.Size(10, (11 + jia)),imageOffset: new BMap.Size(0, 0 - index * height - cha)});
+          }
+
+          var marker = new BMap.Marker(point, {icon: myIcon});
+          if(title != null && title != ""){
+            marker.setTitle(title);
+          }
+          // 起点和终点放在最上面
+          if(imgType == 1){
+            marker.setTop(true);
+          }
+          map.addOverlay(marker);
+        }
+        var addPoints = function(points){
+          for(var i = 0; i < points.length; i++){
+            bounds.push(points[i]);
+            b.push(points[i]);
+          }
+        }
+        // 绘制驾车步行线路
+        for (var i = 0; i < planObj.getNumRoutes(); i ++){
+          var route = planObj.getRoute(i);
+          if (route.getDistance(false) <= 0){continue;}
+          addPoints(route.getPath());
+          // 驾车线路
+          if(route.getRouteType() == BMAP_ROUTE_TYPE_DRIVING){
+            map.addOverlay(new BMap.Polyline(route.getPath(), {strokeColor: "#0030ff",strokeOpacity:opacity,strokeWeight:6,enableMassClear:true}));
+          }else{
+            // 步行线路有可能为0
+            map.addOverlay(new BMap.Polyline(route.getPath(), {strokeColor: "#30a208",strokeOpacity:0.75,strokeWeight:4,enableMassClear:true}));
+          }
+        }
+        map.setViewport(bounds);
+        // 终点
+        addMarkerFun(results.getEnd().point,1,1);
+        // 开始点
+        addMarkerFun(results.getStart().point,1,0);
+        linesPoints[linesPoints.length] = b;
+      }
+      initLine();
+      setTimeout(function(){
+        run();
+      },1500);
+      map.enableScrollWheelZoom(true);     //开启鼠标滚轮缩放
+    },
+
     getList() {
       this.listLoading = true
       fetchList(this.listQuery).then(response => {
@@ -261,9 +386,14 @@ export default {
       }
     },
     handleCreate() {
+
       this.resetTemp()
-      this.dialogStatus = 'create'
-      this.dialogFormVisible = true
+      this.dialogStatus = '添加'
+      this.dialogFormVisible = true;
+      if(this.textMap.create === '添加'){
+        this.ifShowMap = false;
+        this.ifShowForm = true;
+      }
       this.$nextTick(() => {
         this.$refs['dataForm'].clearValidate()
       })
@@ -287,13 +417,15 @@ export default {
       })
     },
     handleUpdate(row) {
+
       this.temp = Object.assign({}, row) // copy obj
       this.temp.timestamp = new Date(this.temp.timestamp)
       this.dialogStatus = 'update'
       this.dialogFormVisible = true
-      this.$nextTick(() => {
-        this.$refs['dataForm'].clearValidate()
-      })
+      this.creat()
+      // this.$nextTick(() => {
+      //   this.$refs['dataForm'].clearValidate()
+      // })
     },
     updateData() {
       this.$refs['dataForm'].validate((valid) => {
@@ -361,3 +493,6 @@ export default {
   }
 }
 </script>
+<style>
+  body, html,#allmap {width: 100%;height: 500px;margin:0;font-family:"微软雅黑";}
+</style>
