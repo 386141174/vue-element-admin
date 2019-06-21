@@ -30,7 +30,7 @@
       style="width: 100%;"
       @sort-change="sortChange"
     >
-      <el-table-column label="订单编号" prop="order_id" sortable="custom" align="center" width="400px">
+      <el-table-column label="订单编号" prop="order_id" sortable="custom" align="center" width="330px">
         <template slot-scope="scope">
           <span>{{ scope.row.order.order_id }}</span>
         </template>
@@ -48,6 +48,11 @@
       <el-table-column label="发货点" width="150px" align="center">
         <template slot-scope="scope">
           <span>{{ scope.row.user.cityName }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="目的地" width="150px" align="center">
+        <template slot-scope="scope">
+          <span>{{ scope.row.order.addr_name }}</span>
         </template>
       </el-table-column>
       <el-table-column label="添加时间" width="150px" align="center">
@@ -83,33 +88,41 @@
     <pagination v-show="total>0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit" @pagination="getList" />
 
     <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible">
-      <div id="allmap" v-show="ifShowMap">
-
-      </div>
-      <el-form ref="dataForm" :rules="rules" :model="temp" label-position="left" label-width="70px" style="width: 400px; margin-left:50px;" v-show="ifShowForm">
-        <el-form-item :label="$t('table.type')" prop="type">
-          <el-select v-model="temp.type" class="filter-item" placeholder="Please select">
-            <el-option v-for="item in calendarTypeOptions" :key="item.key" :label="item.display_name" :value="item.key" />
-          </el-select>
+      <div v-show="ifShowMap" id="allmap" />
+      <el-form v-show="ifShowForm" ref="dataForm" :rules="rules" :model="temp" label-position="left" label-width="70px" style="width: 400px; margin-left:50px;">
+        <!--        <el-form-item label="Type" prop="type">-->
+        <!--          <el-select v-model="temp.type" class="filter-item" placeholder="Please select">-->
+        <!--            <el-option v-for="item in calendarTypeOptions" :key="item.key" :label="item.display_name" :value="item.key" />-->
+        <!--          </el-select>-->
+        <!--        </el-form-item>-->
+        <!--        <el-form-item label="Date" prop="timestamp">-->
+        <!--          <el-date-picker v-model="temp.timestamp" type="datetime" placeholder="Please pick a date" />-->
+        <!--        </el-form-item>-->
+        <el-form-item label="商品名称" prop="goods_name">
+          <el-input v-model="formData.goods_name" />
         </el-form-item>
-        <el-form-item :label="$t('table.date')" prop="timestamp">
-          <el-date-picker v-model="temp.timestamp" type="datetime" placeholder="Please pick a date" />
+        <el-form-item label="客户姓名" prop="goods_name">
+          <el-input v-model="formData.realname" />
         </el-form-item>
-        <el-form-item :label="$t('table.title')" prop="title">
-          <el-input v-model="temp.title" />
+        <el-form-item label="目的地" prop="goods_name">
+          <el-cascader
+            v-model="selectedOptions"
+            size="large"
+            :options="options"
+            @change="handleChange"
+          />
         </el-form-item>
-        <el-form-item :label="$t('table.status')">
+        <el-form-item label="商品名称" prop="goods_name">
+          <el-input v-model="formData.addr_name" />
+        </el-form-item>
+        <el-form-item label="Status">
           <el-select v-model="temp.status" class="filter-item" placeholder="Please select">
             <el-option v-for="item in statusOptions" :key="item" :label="item" :value="item" />
           </el-select>
         </el-form-item>
-        <el-form-item :label="$t('table.importance')">
-          <el-rate v-model="temp.importance" :colors="['#99A9BF', '#F7BA2A', '#FF9900']" :max="3" style="margin-top:8px;" />
-        </el-form-item>
-        <el-form-item :label="$t('table.remark')">
-          <el-input v-model="temp.remark" :autosize="{ minRows: 2, maxRows: 4}" type="textarea" placeholder="Please input" />
-        </el-form-item>
+
       </el-form>
+
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">
           {{ $t('table.cancel') }}
@@ -120,7 +133,7 @@
       </div>
     </el-dialog>
 
-    <el-dialog :visible.sync="dialogPvVisible" title="Reading statistics" >
+    <el-dialog :visible.sync="dialogPvVisible" title="Reading statistics">
       <el-table :data="pvData" border fit highlight-current-row style="width: 100%">
         <el-table-column prop="key" label="Channel" />
         <el-table-column prop="pv" label="Pv" />
@@ -133,12 +146,13 @@
 </template>
 
 <script>
-import { fetchList, fetchPv, createArticle, updateArticle } from '@/api/order'
-import waves from '@/directive/waves' // waves directive
-import { parseTime } from '@/utils'
-import Pagination from '@/components/Pagination' // secondary package based on el-pagination
+  import { createOrder, fetchList, fetchPv, updateArticle } from '@/api/order'
+  import waves from '@/directive/waves' // waves directive
+  import { parseTime } from '@/utils'
+  import Pagination from '@/components/Pagination' // secondary package based on el-pagination
+  import { regionData } from 'element-china-area-data'
 
-const calendarTypeOptions = [
+  const calendarTypeOptions = [
   { key: 'order_id', display_name: '订单编号' },
   { key: 'goods_name', display_name: '商品名称' },
   { key: 'realname', display_name: '客户昵称' }
@@ -169,8 +183,8 @@ export default {
   },
   data() {
     return {
-      ifShowMap:'',
-      ifShowForm:true,
+      ifShowMap: '',
+      ifShowForm: true,
       tableKey: 0,
       list: null,
       total: 0,
@@ -178,16 +192,24 @@ export default {
       listQuery: {
         page: 1,
         limit: 20,
-        importance: undefined,
         title: undefined,
         type: undefined,
         sort: '+id'
       },
-      importanceOptions: [1, 2, 3],
       calendarTypeOptions,
       sortOptions: [{ label: '按照时间升序', key: '+id' }, { label: '按照时间降序', key: '-id' }],
       statusOptions: ['published', 'draft', 'deleted'],
       showReviewer: false,
+      formData: {
+        goods_name: 0,
+        realname: '',
+        cityName: '',
+        addr_name: '',
+        phone: '',
+        deliver_time: ''
+      },
+      options: regionData,
+      selectedOptions: [],
       temp: {
         id: undefined,
         importance: 1,
@@ -196,6 +218,10 @@ export default {
         title: '',
         type: '',
         status: 'published'
+      },
+      newOrder: {
+        goods_name: ''
+
       },
       dialogFormVisible: false,
       dialogStatus: '',
@@ -214,127 +240,126 @@ export default {
     }
   },
   created() {
-
     this.getList()
   },
   methods: {
-    creat(){
-      if(this.textMap.update === '地图'){
-        this.ifShowMap = true;
-        this.ifShowForm = false;
+    handleChange(value) {
+      console.log(value)
+    },
+    creat() {
+      if (this.textMap.update === '地图') {
+        this.ifShowMap = true
+        this.ifShowForm = false
       }
       // 百度地图API功能
-      var map = new BMap.Map("allmap");
-      map.centerAndZoom(new BMap.Point(116.404, 39.915), 15);
-      var bounds = null;
-      var linesPoints = null;
-      var spoi3 = new BMap.Point(117.216994,39.141368);
-      var spoi1 = new BMap.Point(116.380967,39.913285);    // 起点1
-      var spoi2 = new BMap.Point(116.380967,39.953285);    // 起点2
-      var epoi  = new BMap.Point(116.424374,39.914668);    // 终点
-      var myIcon = new BMap.Icon("http://lbsyun.baidu.com/jsdemo/img/car.png", new BMap.Size(52, 30), {imageOffset: new BMap.Size(0, 0)});
-      function initLine(){
-        bounds = new Array();
-        linesPoints = new Array();
-        map.clearOverlays();                                                    // 清空覆盖物
-        var driving3 = new BMap.DrivingRoute(map,{onSearchComplete:drawLine});  // 驾车实例,并设置回调
-        driving3.search(epoi, spoi1);                                       // 搜索一条线路
-        var driving4 = new BMap.DrivingRoute(map,{onSearchComplete:drawLine});  // 驾车实例,并设置回调
-        driving4.search(epoi, spoi2);
-        var driving5 = new BMap.DrivingRoute(map,{onSearchComplete:drawLine});  // 驾车实例,并设置回调
-        driving5.search(epoi, spoi3);   // 搜索一条线路
+      var map = new BMap.Map('allmap')
+      map.centerAndZoom(new BMap.Point(116.404, 39.915), 15)
+      var bounds = null
+      var linesPoints = null
+      var spoi3 = new BMap.Point(117.216994, 39.141368)
+      var spoi1 = new BMap.Point(116.380967, 39.913285) // 起点1
+      var spoi2 = new BMap.Point(116.380967, 39.953285) // 起点2
+      var epoi = new BMap.Point(116.424374, 39.914668) // 终点
+      var myIcon = new BMap.Icon('http://lbsyun.baidu.com/jsdemo/img/car.png', new BMap.Size(52, 30), { imageOffset: new BMap.Size(0, 0) })
+      function initLine() {
+        bounds = new Array()
+        linesPoints = new Array()
+        map.clearOverlays() // 清空覆盖物
+        var driving3 = new BMap.DrivingRoute(map, { onSearchComplete: drawLine }) // 驾车实例,并设置回调
+        driving3.search(epoi, spoi1) // 搜索一条线路
+        var driving4 = new BMap.DrivingRoute(map, { onSearchComplete: drawLine }) // 驾车实例,并设置回调
+        driving4.search(epoi, spoi2)
+        var driving5 = new BMap.DrivingRoute(map, { onSearchComplete: drawLine }) // 驾车实例,并设置回调
+        driving5.search(epoi, spoi3) // 搜索一条线路
       }
-      function run(){
-        for(var m = 0;m < linesPoints.length; m++){
-          var pts = linesPoints[m];
-          var len = pts.length;
-          var carMk = new BMap.Marker(pts[0],{icon:myIcon});
-          map.addOverlay(carMk);
-          resetMkPoint(1,len,pts,carMk)
+      function run() {
+        for (var m = 0; m < linesPoints.length; m++) {
+          var pts = linesPoints[m]
+          var len = pts.length
+          var carMk = new BMap.Marker(pts[0], { icon: myIcon })
+          map.addOverlay(carMk)
+          resetMkPoint(1, len, pts, carMk)
         }
 
-        function resetMkPoint(i,len,pts,carMk){
-          carMk.setPosition(pts[i]);
-          if(i < len){
-            setTimeout(function(){
-              i++;
-              resetMkPoint(i,len,pts,carMk);
-            },10);
+        function resetMkPoint(i, len, pts, carMk) {
+          carMk.setPosition(pts[i])
+          if (i < len) {
+            setTimeout(function() {
+              i++
+              resetMkPoint(i, len, pts, carMk)
+            }, 10)
           }
         }
-
       }
-      function drawLine(results){
-        var opacity = 0.45;
-        var planObj = results.getPlan(0);
-        var b = new Array();
-        var addMarkerFun = function(point,imgType,index,title){
-          var url;
-          var width;
+      function drawLine(results) {
+        var opacity = 0.45
+        var planObj = results.getPlan(0)
+        var b = new Array()
+        var addMarkerFun = function(point, imgType, index, title) {
+          var url
+          var width
           var height
-          var myIcon;
+          var myIcon
           // imgType:1的场合，为起点和终点的图；2的场合为车的图形
-          if(imgType == 1){
-            url = "http://lbsyun.baidu.com/jsdemo/img/dest_markers.png";
-            width = 42;
-            height = 34;
-            myIcon = new BMap.Icon(url,new BMap.Size(width, height),{offset: new BMap.Size(14, 32),imageOffset: new BMap.Size(0, 0 - index * height)});
-          }else{
-            url = "http://lbsyun.baidu.com/jsdemo/img/trans_icons.png";
-            width = 22;
-            height = 25;
-            var d = 25;
-            var cha = 0;
+          if (imgType == 1) {
+            url = 'http://lbsyun.baidu.com/jsdemo/img/dest_markers.png'
+            width = 42
+            height = 34
+            myIcon = new BMap.Icon(url, new BMap.Size(width, height), { offset: new BMap.Size(14, 32), imageOffset: new BMap.Size(0, 0 - index * height) })
+          } else {
+            url = 'http://lbsyun.baidu.com/jsdemo/img/trans_icons.png'
+            width = 22
+            height = 25
+            var d = 25
+            var cha = 0
             var jia = 0
-            if(index == 2){
-              d = 21;
-              cha = 5;
-              jia = 1;
+            if (index == 2) {
+              d = 21
+              cha = 5
+              jia = 1
             }
-            myIcon = new BMap.Icon(url,new BMap.Size(width, d),{offset: new BMap.Size(10, (11 + jia)),imageOffset: new BMap.Size(0, 0 - index * height - cha)});
+            myIcon = new BMap.Icon(url, new BMap.Size(width, d), { offset: new BMap.Size(10, (11 + jia)), imageOffset: new BMap.Size(0, 0 - index * height - cha) })
           }
 
-          var marker = new BMap.Marker(point, {icon: myIcon});
-          if(title != null && title != ""){
-            marker.setTitle(title);
+          var marker = new BMap.Marker(point, { icon: myIcon })
+          if (title != null && title != '') {
+            marker.setTitle(title)
           }
           // 起点和终点放在最上面
-          if(imgType == 1){
-            marker.setTop(true);
+          if (imgType == 1) {
+            marker.setTop(true)
           }
-          map.addOverlay(marker);
+          map.addOverlay(marker)
         }
-        var addPoints = function(points){
-          for(var i = 0; i < points.length; i++){
-            bounds.push(points[i]);
-            b.push(points[i]);
+        var addPoints = function(points) {
+          for (var i = 0; i < points.length; i++) {
+            bounds.push(points[i])
+            b.push(points[i])
           }
         }
         // 绘制驾车步行线路
-        for (var i = 0; i < planObj.getNumRoutes(); i ++){
-          var route = planObj.getRoute(i);
-          if (route.getDistance(false) <= 0){continue;}
-          addPoints(route.getPath());
+        for (var i = 0; i < planObj.getNumRoutes(); i++) {
+          var route = planObj.getRoute(i)
+          if (route.getDistance(false) <= 0) { continue }
+          addPoints(route.getPath())
           // 驾车线路
-          if(route.getRouteType() == BMAP_ROUTE_TYPE_DRIVING){
-            map.addOverlay(new BMap.Polyline(route.getPath(), {strokeColor: "#0030ff",strokeOpacity:opacity,strokeWeight:6,enableMassClear:true}));
-          }else{
+          if (route.getRouteType() == BMAP_ROUTE_TYPE_DRIVING) {
+            map.addOverlay(new BMap.Polyline(route.getPath(), { strokeColor: '#0030ff', strokeOpacity: opacity, strokeWeight: 6, enableMassClear: true }))
+          } else {
             // 步行线路有可能为0
-            map.addOverlay(new BMap.Polyline(route.getPath(), {strokeColor: "#30a208",strokeOpacity:0.75,strokeWeight:4,enableMassClear:true}));
+            map.addOverlay(new BMap.Polyline(route.getPath(), { strokeColor: '#30a208', strokeOpacity: 0.75, strokeWeight: 4, enableMassClear: true }))
           }
         }
-        map.setViewport(bounds);
+        map.setViewport(bounds)
         // 终点
-        addMarkerFun(results.getEnd().point,1,1);
+        addMarkerFun(results.getEnd().point, 1, 1)
         // 开始点
-        addMarkerFun(results.getStart().point,1,0);
-        linesPoints[linesPoints.length] = b;
+        addMarkerFun(results.getStart().point, 1, 0)
+        linesPoints[linesPoints.length] = b
       }
-      initLine();
-      setTimeout(function(){
-        run();
-      },1500);
-      map.enableScrollWheelZoom(true);     //开启鼠标滚轮缩放
+      initLine()
+      run()
+      map.enableScrollWheelZoom(true) // 开启鼠标滚轮缩放
     },
 
     getList() {
@@ -344,9 +369,7 @@ export default {
         this.total = response.data.total
 
         // Just to simulate the time of the request
-        setTimeout(() => {
-          this.listLoading = false
-        }, 1.5 * 1000)
+        this.listLoading = false
       })
     },
     handleFilter() {
@@ -374,25 +397,12 @@ export default {
       }
       this.handleFilter()
     },
-    resetTemp() {
-      this.temp = {
-        id: undefined,
-        importance: 1,
-        remark: '',
-        timestamp: new Date(),
-        title: '',
-        status: 'published',
-        type: ''
-      }
-    },
     handleCreate() {
-
-      this.resetTemp()
       this.dialogStatus = '添加'
-      this.dialogFormVisible = true;
-      if(this.textMap.create === '添加'){
-        this.ifShowMap = false;
-        this.ifShowForm = true;
+      this.dialogFormVisible = true
+      if (this.textMap.create === '添加') {
+        this.ifShowMap = false
+        this.ifShowForm = true
       }
       this.$nextTick(() => {
         this.$refs['dataForm'].clearValidate()
@@ -401,9 +411,7 @@ export default {
     createData() {
       this.$refs['dataForm'].validate((valid) => {
         if (valid) {
-          this.temp.id = parseInt(Math.random() * 100) + 1024 // mock a id
-          this.temp.author = 'vue-element-admin'
-          createArticle(this.temp).then(() => {
+          createOrder(this.temp).then(() => {
             this.list.unshift(this.temp)
             this.dialogFormVisible = false
             this.$notify({
@@ -417,7 +425,6 @@ export default {
       })
     },
     handleUpdate(row) {
-
       this.temp = Object.assign({}, row) // copy obj
       this.temp.timestamp = new Date(this.temp.timestamp)
       this.dialogStatus = 'update'
