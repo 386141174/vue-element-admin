@@ -15,11 +15,11 @@ export function fetchArticle(id) {
     params: { id }
   })
 }
-export function createOrder(data) {
+export function createOrder(params) {
   return request({
     url: '/order/save',
     method: 'post',
-    data
+    params
   })
 }
 

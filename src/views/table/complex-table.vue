@@ -88,23 +88,17 @@
     <pagination v-show="total>0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit" @pagination="getList" />
 
     <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible">
-      <div v-show="ifShowMap" id="allmap" />
+      <div v-show="ifShowMap" id="allmap">
+
+      </div>
       <el-form v-show="ifShowForm" ref="dataForm" :rules="rules" :model="temp" label-position="left" label-width="70px" style="width: 400px; margin-left:50px;">
-        <!--        <el-form-item label="Type" prop="type">-->
-        <!--          <el-select v-model="temp.type" class="filter-item" placeholder="Please select">-->
-        <!--            <el-option v-for="item in calendarTypeOptions" :key="item.key" :label="item.display_name" :value="item.key" />-->
-        <!--          </el-select>-->
-        <!--        </el-form-item>-->
-        <!--        <el-form-item label="Date" prop="timestamp">-->
-        <!--          <el-date-picker v-model="temp.timestamp" type="datetime" placeholder="Please pick a date" />-->
-        <!--        </el-form-item>-->
+        <el-form-item label="客户姓名" prop="realName">
+          <el-input v-model="formData.realName" />
+        </el-form-item>
         <el-form-item label="商品名称" prop="goods_name">
-          <el-input v-model="formData.goods_name" />
+          <el-input v-model="formData.goodsName" />
         </el-form-item>
-        <el-form-item label="客户姓名" prop="goods_name">
-          <el-input v-model="formData.realname" />
-        </el-form-item>
-        <el-form-item label="目的地" prop="goods_name">
+        <el-form-item label="目的地" prop="addr_name">
           <el-cascader
             v-model="selectedOptions"
             size="large"
@@ -112,13 +106,13 @@
             @change="handleChange"
           />
         </el-form-item>
-        <el-form-item label="商品名称" prop="goods_name">
-          <el-input v-model="formData.addr_name" />
-        </el-form-item>
-        <el-form-item label="Status">
-          <el-select v-model="temp.status" class="filter-item" placeholder="Please select">
-            <el-option v-for="item in statusOptions" :key="item" :label="item" :value="item" />
-          </el-select>
+        <el-form-item label="送货时间" prop="ffuck">
+          <el-date-picker
+            v-model="formData.deliverTime"
+            type="datetime"
+            placeholder="选择日期时间"
+            default-time="12:00:00">
+          </el-date-picker>
         </el-form-item>
 
       </el-form>
@@ -127,7 +121,7 @@
         <el-button @click="dialogFormVisible = false">
           {{ $t('table.cancel') }}
         </el-button>
-        <el-button type="primary" @click="dialogStatus==='create'?createData():updateData()">
+        <el-button type="primary" @click="dialogStatus==='添加'?createData():updateData()">
           {{ $t('table.confirm') }}
         </el-button>
       </div>
@@ -150,7 +144,7 @@
   import waves from '@/directive/waves' // waves directive
   import { parseTime } from '@/utils'
   import Pagination from '@/components/Pagination' // secondary package based on el-pagination
-  import { regionData } from 'element-china-area-data'
+  import { CodeToText, regionData } from 'element-china-area-data'
 
   const calendarTypeOptions = [
   { key: 'order_id', display_name: '订单编号' },
@@ -200,15 +194,12 @@ export default {
       sortOptions: [{ label: '按照时间升序', key: '+id' }, { label: '按照时间降序', key: '-id' }],
       statusOptions: ['published', 'draft', 'deleted'],
       showReviewer: false,
-      formData: {
-        goods_name: 0,
-        realname: '',
-        cityName: '',
-        addr_name: '',
-        phone: '',
-        deliver_time: ''
-      },
       options: regionData,
+      formData: {
+        goodsName: '',
+        realName: '',
+        deliverTime: '',
+      },
       selectedOptions: [],
       temp: {
         id: undefined,
@@ -218,10 +209,6 @@ export default {
         title: '',
         type: '',
         status: 'published'
-      },
-      newOrder: {
-        goods_name: ''
-
       },
       dialogFormVisible: false,
       dialogStatus: '',
@@ -245,6 +232,14 @@ export default {
   methods: {
     handleChange(value) {
       console.log(value)
+    },
+    getLabel(val){
+      var obj = {};
+      obj = arr.find(function(item){
+        return item.whsCode === val
+      });
+      //obj 就是被选中的那个对象，
+      console.log(obj.whsAddress)//label值
     },
     creat() {
       if (this.textMap.update === '地图') {
@@ -367,8 +362,6 @@ export default {
       fetchList(this.listQuery).then(response => {
         this.list = response.data.items
         this.total = response.data.total
-
-        // Just to simulate the time of the request
         this.listLoading = false
       })
     },
@@ -408,18 +401,31 @@ export default {
         this.$refs['dataForm'].clearValidate()
       })
     },
+
     createData() {
       this.$refs['dataForm'].validate((valid) => {
         if (valid) {
-          createOrder(this.temp).then(() => {
-            this.list.unshift(this.temp)
+          // var fucker = TextToCode[this.selectedOptions];
+          let fuckCities = ['北京市','天津市','重庆市','上海市'];
+          let selectedOption = this.selectedOptions[0];
+          for (let i in fuckCities) {
+            if (selectedOption === fuckCities[i]) {
+              selectedOption = this.selectedOptions[1];
+            }
+          }
+
+          let fullCityName = CodeToText[selectedOption]
+          this.formData.cityName = fullCityName.substring(0,fullCityName.length - 1);
+          createOrder(this.formData).then(() => {
+            this.list.unshift(this.formData)
             this.dialogFormVisible = false
             this.$notify({
               title: '成功',
-              message: '创建成功',
+              message: '订单创建成功',
               type: 'success',
               duration: 2000
             })
+            this.getList();
           })
         }
       })
