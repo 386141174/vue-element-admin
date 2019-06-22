@@ -92,8 +92,22 @@
 
       </div>
       <el-form v-show="ifShowForm" ref="dataForm" :rules="rules" :model="temp" label-position="left" label-width="70px" style="width: 400px; margin-left:50px;">
-        <el-form-item label="客户姓名" prop="realName">
-          <el-input v-model="formData.realName" />
+        <el-form-item label="客户姓名" prop="realname">
+          <el-select
+            v-model="formData.realName"
+            filterable
+            remote
+            reserve-keyword
+            placeholder="请输入关键词"
+            :remote-method="remoteMethod"
+            :loading="fuzzyNameList.loading">
+            <el-option
+              v-for="item in fuzzyNameList.options"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+            </el-option>
+          </el-select>
         </el-form-item>
         <el-form-item label="商品名称" prop="goods_name">
           <el-input v-model="formData.goodsName" />
@@ -145,6 +159,7 @@
   import { parseTime } from '@/utils'
   import Pagination from '@/components/Pagination' // secondary package based on el-pagination
   import { CodeToText, regionData } from 'element-china-area-data'
+  import { getFuzzyInfo } from '@/api/user'
 
   const calendarTypeOptions = [
   { key: 'order_id', display_name: '订单编号' },
@@ -223,23 +238,47 @@ export default {
         timestamp: [{ type: 'date', required: true, message: 'timestamp is required', trigger: 'change' }],
         title: [{ required: true, message: 'title is required', trigger: 'blur' }]
       },
-      downloadLoading: false
+      downloadLoading: false,
+      fuzzyNameList: {
+        options: [],
+        value: [],
+        list: [],
+        loading: false,
+        states: [],
+      }
     }
   },
   created() {
     this.getList()
   },
+  mounted() {
+    this.fuzzyNameList.list = this.fuzzyNameList.states.map(item => {
+      return { value: item, label: item };
+    });
+  },
+
   methods: {
     handleChange(value) {
       console.log(value)
     },
-    getLabel(val){
-      var obj = {};
-      obj = arr.find(function(item){
-        return item.whsCode === val
-      });
-      //obj 就是被选中的那个对象，
-      console.log(obj.whsAddress)//label值
+    remoteMethod(query) {
+      if (query !== '') {
+        this.fuzzyNameList.loading = true;
+        getFuzzyInfo({realname: query}).then(resp => {
+          this.fuzzyNameList.loading = false;
+          console.log(resp);
+          let data = resp.data;
+          console.log(data);
+          data.forEach((item,index) => {
+            this.fuzzyNameList.options[index] = {
+              value: data[index].realname,
+              label: data[index].realname,
+            };
+          })
+        })
+      } else {
+        this.fuzzyNameList.options = [];
+      }
     },
     creat() {
       if (this.textMap.update === '地图') {
@@ -426,9 +465,17 @@ export default {
               duration: 2000
             })
             this.getList();
+            this.emptyObj(this.formData);
+            this.emptyObj(this.fuzzyNameList);
+            this.emptyObj(this.selectedOptions);
           })
         }
       })
+    },
+    emptyObj(obj) {
+      for (let p in obj) {
+        obj[p] = '';
+      }
     },
     handleUpdate(row) {
       this.temp = Object.assign({}, row) // copy obj
@@ -483,22 +530,33 @@ export default {
     handleDownload() {
       this.downloadLoading = true
       import('@/vendor/Export2Excel').then(excel => {
-        const tHeader = ['timestamp', 'title', 'type', 'importance', 'status']
-        const filterVal = ['timestamp', 'title', 'type', 'importance', 'status']
-        const data = this.formatJson(filterVal, this.list)
+        const tHeader = ['order_id', 'goods_name', 'realname', 'cityName', 'addr_name','add_time'];
+        const filterVal = ['order_id', 'goods_name', 'realname', 'cityName', 'addr_name','add_time'];
+        const fuckerArr = [];
+        this.list.forEach((item,index) => {
+          let obj = {};
+          obj.order_id = item.order.order_id;
+          obj.goods_name = item.order.goods_name;
+          obj.realname = item.user.realname;
+          obj.cityName = item.user.cityName;
+          obj.addr_name = item.order.addr_name;
+          obj.add_time = item.order.add_time;
+          fuckerArr[index] = obj;
+        })
+        const data = this.formatJson(filterVal,fuckerArr);
         excel.export_json_to_excel({
           header: tHeader,
           data,
           filename: 'table-list'
         })
         this.downloadLoading = false
-      })
-    },
-    formatJson(filterVal, jsonData) {
-      return jsonData.map(v => filterVal.map(j => {
-        if (j === 'timestamp') {
-          return parseTime(v[j])
-        } else {
+    })
+  },
+  formatJson(filterVal, jsonData) {
+    return jsonData.map(v => filterVal.map(j => {
+      if (j === 'timestamp') {
+        return parseTime(v[j])
+      } else {
           return v[j]
         }
       }))

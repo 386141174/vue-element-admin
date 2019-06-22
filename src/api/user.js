@@ -22,3 +22,11 @@ export function logout() {
     method: 'post'
   })
 }
+
+export function getFuzzyInfo(query) {
+  return request({
+    url: '/transaction/fuzzyList',
+    method: 'get',
+    params: query,
+  })
+}
