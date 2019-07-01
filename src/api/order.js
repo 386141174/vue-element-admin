@@ -46,3 +46,10 @@ export function updateArticle(data) {
     data
   })
 }
+
+export function getAddr_name() {
+  return request({
+    url:'/order/getAddrName',
+    method:'get',
+  })
+}

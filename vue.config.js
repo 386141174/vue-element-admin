@@ -126,7 +126,9 @@ module.exports = {
                   minChunks: 3, //  minimum common number
                   priority: 5,
                   reuseExistingChunk: true
-                }
+                },
+
+
               }
             })
           config.optimization.runtimeChunk('single')

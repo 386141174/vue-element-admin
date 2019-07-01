@@ -8,4 +8,12 @@ export function  mapCoordinate(addr) {
   })
 }
 
+export function  searchcCoordinate(addr) {
+  return request({
+    url: '/map/searchcCoordinate',
+    method: 'post',
+    params: {addr}
+  })
+}
+
 

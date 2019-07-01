@@ -1,12 +1,12 @@
 <template>
-  <div class="login-container">
+  <div class="login-container" v-title data-title = "天津顺水物流管理-登录">
     <el-form ref="loginForm" :model="loginForm" :rules="loginRules" class="login-form" autocomplete="on" label-position="left">
 
       <div class="title-container">
         <h3 class="title">
-          {{ $t('login.title') }}
+          天津顺水物流管理
         </h3>
-        <lang-select class="set-language" />
+<!--        <lang-select class="set-language" />-->
       </div>
 
       <el-form-item prop="username">
@@ -91,14 +91,14 @@ export default {
   data() {
     const validateUsername = (rule, value, callback) => {
       if (!validUsername(value)) {
-        callback(new Error('Please enter the correct user name'))
+        callback(new Error('请输入正确的账号'))
       } else {
         callback()
       }
     }
     const validatePassword = (rule, value, callback) => {
       if (value.length < 6) {
-        callback(new Error('The password can not be less than 6 digits'))
+        callback(new Error('密码不能少于6位'))
       } else {
         callback()
       }
@@ -182,7 +182,7 @@ export default {
               this.loading = false
             })
         } else {
-          console.log('error submit!!')
+          console.log('登录失败')
           return false
         }
       })

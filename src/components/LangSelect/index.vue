@@ -8,7 +8,7 @@
         中文
       </el-dropdown-item>
       <el-dropdown-item :disabled="language==='en'" command="en">
-        English
+        dasdasd
       </el-dropdown-item>
       <el-dropdown-item :disabled="language==='es'" command="es">
         Español

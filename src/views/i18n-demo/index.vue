@@ -11,7 +11,7 @@
             简体中文
           </el-radio>
           <el-radio label="en" border>
-            English
+           asdasdsad
           </el-radio>
           <el-radio label="es" border>
             Español
