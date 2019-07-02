@@ -16,9 +16,7 @@
         </div>
 
         <!-- 图像画布 -->
-        <canvas  style="border-radius: 50%"></canvas>
-        <button  @click="face_login()" class="btn btn-info"><i class="icon-play"></i>&nbsp;登录</button>
-        <button onclick="close_camera()" class="btn btn-info"><i class="icon-play"></i>关闭</button>
+        <canvas ref="canvas" crossorigin="anonymous"></canvas>
       </el-form-item>
 
       <el-form-item prop="username">
@@ -38,31 +36,31 @@
 
 
 
-      <el-tooltip v-model="capsTooltip" content="Caps lock is On" placement="right" manual v-show="false">
-        <el-form-item prop="password">
-          <span class="svg-container">
-            <svg-icon icon-class="password" />
-          </span>
-          <el-input
-            :key="passwordType"
-            ref="password"
-            v-model="loginForm.password"
-            :type="passwordType"
-            :placeholder="$t('login.password')"
-            name="password"
-            tabindex="2"
-            autocomplete="on"
-            @keyup.native="checkCapslock"
-            @blur="capsTooltip = false"
-            @keyup.enter.native="handleLogin"
-          />
-          <span class="show-pwd" @click="showPwd">
-            <svg-icon :icon-class="passwordType === 'password' ? 'eye' : 'eye-open'" />
-          </span>
-        </el-form-item>
-      </el-tooltip>
+<!--      <el-tooltip v-model="capsTooltip" content="Caps lock is On" placement="right" manual v-show="false">-->
+<!--        <el-form-item prop="password">-->
+<!--          <span class="svg-container">-->
+<!--            <svg-icon icon-class="password" />-->
+<!--          </span>-->
+<!--          <el-input-->
+<!--            :key="passwordType"-->
+<!--            ref="password"-->
+<!--            v-model="loginForm.password"-->
+<!--            :type="passwordType"-->
+<!--            :placeholder="$t('login.password')"-->
+<!--            name="password"-->
+<!--            tabindex="2"-->
+<!--            autocomplete="on"-->
+<!--            @keyup.native="checkCapslock"-->
+<!--            @blur="capsTooltip = false"-->
 
-      <el-button :loading="loading" type="primary" style="width:100%;margin-bottom:30px;" @click.native.prevent="handleLogin">
+<!--          />-->
+<!--          <span class="show-pwd" @click="showPwd">-->
+<!--            <svg-icon :icon-class="passwordType === 'password' ? 'eye' : 'eye-open'" />-->
+<!--          </span>-->
+<!--        </el-form-item>-->
+<!--      </el-tooltip>-->
+
+      <el-button :loading="loading" type="primary" style="width:100%;margin-bottom:30px;" @click.native.prevent="handelFaceLogin">
         {{ $t('login.logIn') }}
       </el-button>
 
@@ -95,36 +93,33 @@
 </template>
 
 <script>
-  import { validUsername } from '@/utils/validate'
   import LangSelect from '@/components/LangSelect'
   import SocialSign from './components/SocialSignin'
+  import { faceLogin } from '@/api/user'
 
   export default {
   name: 'Login',
   components: { LangSelect, SocialSign },
   data() {
     const validateUsername = (rule, value, callback) => {
-      if (!validUsername(value)) {
-        callback(new Error('请输入正确的账号'))
-      } else {
         callback()
-      }
     }
-    const validatePassword = (rule, value, callback) => {
-      if (value.length < 6) {
-        callback(new Error('密码不能少于6位'))
-      } else {
-        callback()
-      }
-    }
+    // const validatePassword = (rule, value, callback) => {
+    //   if (value.length < 6) {
+    //     callback(new Error('密码不能少于6位'))
+    //   } else {
+    //     callback()
+    //   }
+    // }
     return {
       loginForm: {
         username: '',
-        password: ''
+        snapData: '',
+        // password: '',
       },
       loginRules: {
         username: [{ required: true, trigger: 'blur', validator: validateUsername }],
-        password: [{ required: true, trigger: 'blur', validator: validatePassword }]
+        // password: [{ required: true, trigger: 'blur', validator: validatePassword }]
       },
       passwordType: 'password',
       capsTooltip: false,
@@ -139,24 +134,22 @@
       mediaStreamTrack: undefined,
     }
   },
-  watch: {
-    $route: {
-      handler: function(route) {
-        const query = route.query
-        if (query) {
-          this.redirect = query.redirect
-          this.otherQuery = this.getOtherQuery(query)
-        }
-      },
-      immediate: true
-    }
-  },
+  // watch: {
+  //   $route: {
+  //     handler: function(route) {
+  //       const query = route.query
+  //       if (query)
+  //         this.redirect = query.redirect
+  //         this.otherQuery = this.getOtherQuery(query)
+  //       }
+  //     },
+  //     immediate: true
+  //   }
+  // },
   mounted() {
     this.initWebCamera();
     if (this.loginForm.username === '') {
       this.$refs.username.focus()
-    } else if (this.loginForm.password === '') {
-      this.$refs.password.focus()
     }
   },
   destroyed() {
@@ -167,11 +160,11 @@
       return document.querySelector(elem);
     },
     initWebCamera() {
-      this.canvas = this.$('canvas'),
-      this.context = this.canvas.getContext('2d'),
-      this.video = this.$refs.videoElem,
-      this.snap = this.$('#snap'),
-      console.log("11111")
+      this.canvas = this.$('canvas')
+      this.context = this.canvas.getContext('2d')
+      this.video = this.$refs.videoElem
+      this.canvas= this.$refs.canvas;
+      this.snap = this.$('#snap')
 
       //打开摄像头
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -199,16 +192,16 @@
         this.capsTooltip = false
       }
     },
-    showPwd() {
-      if (this.passwordType === 'password') {
-        this.passwordType = ''
-      } else {
-        this.passwordType = 'password'
-      }
-      this.$nextTick(() => {
-        this.$refs.password.focus()
-      })
-    },
+    // showPwd() {
+    //   if (this.passwordType === 'password') {
+    //     this.passwordType = ''
+    //   } else {
+    //     this.passwordType = 'password'
+    //   }
+    //   this.$nextTick(() => {
+    //     this.$refs.password.focus()
+    //   })
+    // },
     handleLogin() {
       this.$refs.loginForm.validate(valid => {
         if (valid) {
@@ -228,6 +221,41 @@
         }
       })
     },
+    handelFaceLogin() {
+      // this.$refs.loginForm.validate(valid => {
+          this.loading = true;
+          this.context.clearRect(0,0,200,150);
+          this.context.drawImage(this.video, 0, 0, 200, 150);
+          this.canvas.crossOrigin = "Anonymous";
+          this.loginForm.snapData = this.canvas.toDataURL('image/jpg');
+          // this.getDataUri(this.loginForm.snapData,function(img) {
+          //   console.log(img);
+          //   this.loginForm.snapData = img;
+          // })
+          console.log(this.loginForm);
+          faceLogin(this.loginForm)
+            .then((res) => {
+              if (res.state === 1) {
+                console.log(res);
+                this.$router.push({ path: this.redirect, query: this.otherQuery })
+
+              }
+              this.loading = false;
+            })
+            .catch(() => {
+              this.loading = false
+            })
+          // this.$store.dispatch('user/login', this.loginForm)
+          //   .then(() => {
+          //     this.$router.push({ path: this.redirect || '/', query: this.otherQuery })
+          //     this.loading = false
+          //   })
+          //   .catch(() => {
+          //     this.loading = false
+          //   })
+      // })
+    },
+
     getOtherQuery(query) {
       return Object.keys(query).reduce((acc, cur) => {
         if (cur !== 'redirect') {
@@ -236,10 +264,7 @@
         return acc
       }, {})
     },
-    face_login(){
-      this.context.clearRect(0,0,300,200);
-      this.context.drawImage(this.video, 0, 0, 300, 200);
-    },
+
 
     created() {
       // window.addEventListener('storage', this.afterQRScan)

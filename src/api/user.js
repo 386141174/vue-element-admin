@@ -8,6 +8,19 @@ export function login(params) {
   })
 }
 
+export function faceLogin(params) {
+  return request({
+    url: 'user/faceLogin',
+    method: 'post',
+    params,
+    headers: {
+      'content-type': 'multipart/form-data',
+      'processData':false,
+      'cache': false
+    }
+  })
+}
+
 export function getInfo(token) {
   return request({
     url: '/user/info',
