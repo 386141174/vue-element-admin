@@ -4,10 +4,22 @@
 
       <div class="title-container">
         <h3 class="title">
-          天津顺水物流管理
+          APS物流综合管理系统
         </h3>
 <!--        <lang-select class="set-language" />-->
       </div>
+
+      <el-form-item id="camera" >
+        <div class="web-cam" >
+
+          <video ref="videoElem"></video>
+        </div>
+
+        <!-- 图像画布 -->
+        <canvas  style="border-radius: 50%"></canvas>
+        <button  @click="face_login()" class="btn btn-info"><i class="icon-play"></i>&nbsp;登录</button>
+        <button onclick="close_camera()" class="btn btn-info"><i class="icon-play"></i>关闭</button>
+      </el-form-item>
 
       <el-form-item prop="username">
         <span class="svg-container">
@@ -24,7 +36,9 @@
         />
       </el-form-item>
 
-      <el-tooltip v-model="capsTooltip" content="Caps lock is On" placement="right" manual>
+
+
+      <el-tooltip v-model="capsTooltip" content="Caps lock is On" placement="right" manual v-show="false">
         <el-form-item prop="password">
           <span class="svg-container">
             <svg-icon icon-class="password" />
@@ -81,11 +95,11 @@
 </template>
 
 <script>
-import { validUsername } from '@/utils/validate'
-import LangSelect from '@/components/LangSelect'
-import SocialSign from './components/SocialSignin'
+  import { validUsername } from '@/utils/validate'
+  import LangSelect from '@/components/LangSelect'
+  import SocialSign from './components/SocialSignin'
 
-export default {
+  export default {
   name: 'Login',
   components: { LangSelect, SocialSign },
   data() {
@@ -117,7 +131,12 @@ export default {
       loading: false,
       showDialog: false,
       redirect: undefined,
-      otherQuery: {}
+      otherQuery: {},
+      canvas: undefined,
+      context: undefined,
+      video: undefined,
+      snap: undefined,
+      mediaStreamTrack: undefined,
     }
   },
   watch: {
@@ -132,10 +151,8 @@ export default {
       immediate: true
     }
   },
-  created() {
-    // window.addEventListener('storage', this.afterQRScan)
-  },
   mounted() {
+    this.initWebCamera();
     if (this.loginForm.username === '') {
       this.$refs.username.focus()
     } else if (this.loginForm.password === '') {
@@ -146,6 +163,30 @@ export default {
     // window.removeEventListener('storage', this.afterQRScan)
   },
   methods: {
+    $(elem){
+      return document.querySelector(elem);
+    },
+    initWebCamera() {
+      this.canvas = this.$('canvas'),
+      this.context = this.canvas.getContext('2d'),
+      this.video = this.$refs.videoElem,
+      this.snap = this.$('#snap'),
+      console.log("11111")
+
+      //打开摄像头
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({
+          video: true,
+        }).then((stream) => {
+          this.mediaStreamTrack = typeof stream.stop === 'function' ? stream : stream.getTracks()[1];
+          // video.src = window.URL.createObjectURL(stream);
+          this.video.srcObject = stream;
+          this.video.play();
+
+        });
+
+      }
+    },
     checkCapslock({ shiftKey, key } = {}) {
       if (key && key.length === 1) {
         if (shiftKey && (key >= 'a' && key <= 'z') || !shiftKey && (key >= 'A' && key <= 'Z')) {
@@ -194,7 +235,17 @@ export default {
         }
         return acc
       }, {})
-    }
+    },
+    face_login(){
+      this.context.clearRect(0,0,300,200);
+      this.context.drawImage(this.video, 0, 0, 300, 200);
+    },
+
+    created() {
+      // window.addEventListener('storage', this.afterQRScan)
+
+
+    },
     // afterQRScan() {
     //   if (e.key === 'x-admin-oauth-code') {
     //     const code = getQueryObject(e.newValue)
@@ -230,6 +281,10 @@ $cursor: #fff;
     color: $cursor;
   }
 }
+.web-cam {
+  border-radius: 250px;
+  -webkit-mask-image: -webkit-radial-gradient(circle, white 100%, black 100%);
+}
 
 /* reset element-ui css */
 .login-container {
@@ -254,10 +309,15 @@ $cursor: #fff;
       }
     }
   }
-
+  #camera {
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    color: #454545;
+    border: 0;
+  }
   .el-form-item {
     border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(0, 0, 0, 0.1);
     border-radius: 5px;
     color: #454545;
   }

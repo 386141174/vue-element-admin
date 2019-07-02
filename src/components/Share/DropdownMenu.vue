@@ -7,7 +7,7 @@
         <span v-else>{{ item.title }}</span>
       </div>
     </div>
-  </div>
+</div>
 </template>
 
 <script>

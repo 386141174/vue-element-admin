@@ -10,13 +10,13 @@
         <el-option v-for="item in sortOptions" :key="item.key" :label="item.label" :value="item.key" />
       </el-select>
       <el-button v-waves class="filter-item" type="primary" icon="el-icon-search" @click="handleFilter">
-        {{ $t('table.search') }}
+        搜索
       </el-button>
       <el-button class="filter-item" style="margin-left: 10px;" type="primary" icon="el-icon-edit" @click="handleCreate">
-        {{ $t('table.add') }}
+        添加订单
       </el-button>
       <el-button v-waves :loading="downloadLoading" class="filter-item" type="primary" icon="el-icon-download" @click="handleDownload">
-        {{ $t('table.export') }}
+        导出到Excel
       </el-button>
     </div>
 
@@ -67,19 +67,16 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="Actions" align="center" width="400" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" width="400" class-name="small-padding fixed-width">
         <template slot-scope="{row}">
           <el-button type="primary" size="mini" @click="handleUpdate(row)">
-            {{ $t('table.edit') }}
+            地图
           </el-button>
           <el-button v-if="row.status!='published'" size="mini" type="success" @click="handleModifyStatus(row,'published')">
-            {{ $t('table.publish') }}
-          </el-button>
-          <el-button v-if="row.status!='draft'" size="mini" @click="handleModifyStatus(row,'draft')">
-            {{ $t('table.draft') }}
+            发货
           </el-button>
           <el-button v-if="row.status!='deleted'" size="mini" type="danger" @click="handleModifyStatus(row,'deleted')">
-            {{ $t('table.delete') }}
+            完成
           </el-button>
         </template>
       </el-table-column>
@@ -109,7 +106,7 @@
             v-model="formData.realName"
             filterable
             remote
-            reserve-keyword
+            clearable
             placeholder="请输入关键词"
             :remote-method="remoteMethod"
             :loading="fuzzyNameList.loading">
@@ -144,7 +141,7 @@
       </el-form>
 
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormVisible = false">
+        <el-button @click="cancelAddOrder()">
           {{ $t('table.cancel') }}
         </el-button>
         <el-button type="primary" @click="dialogStatus==='添加'?createData():updateData()" v-show="showButton">
@@ -169,15 +166,14 @@
 </template>
 
 <script>
-  import { createOrder, fetchList, fetchPv, updateArticle } from '@/api/order'
+  import { createOrder, fetchList, fetchPv, updateOrder } from '@/api/order'
   import waves from '@/directive/waves' // waves directive
   import { parseTime } from '@/utils'
   import Pagination from '@/components/Pagination' // secondary package based on el-pagination
-  import { regionData } from 'element-china-area-data'
-  import {BaiduMap , BmDriving,BmlLushu,BmPolyline} from 'vue-baidu-map'
+  import { CodeToText, regionData } from 'element-china-area-data'
+  import { BaiduMap, BmDriving, BmlLushu, BmPolyline } from 'vue-baidu-map'
   import { mapCoordinate } from '@/api/map'
   import custom_map_config from '../../styles/json/custom_map_config'
-  import { CodeToText } from 'element-china-area-data'
   import { getFuzzyInfo } from '@/api/user'
 
   const calendarTypeOptions = [
@@ -208,7 +204,6 @@ export default {
     statusFilter(status) {
       const statusMap = {
         published: 'success',
-        draft: 'info',
         deleted: 'danger'
       }
       return statusMap[status]
@@ -260,7 +255,7 @@ export default {
       },
       calendarTypeOptions,
       sortOptions: [{ label: '按照时间升序', key: '+id' }, { label: '按照时间降序', key: '-id' }],
-      statusOptions: ['published', 'draft', 'deleted'],
+      statusOptions: ['运输中', '完成','未付款'],
       showReviewer: false,
       options: regionData,
       formData: {
@@ -321,14 +316,18 @@ export default {
     handleChange(value) {
       // console.log(value)
     },
+    cancelAddOrder() {
+      this.dialogFormVisible = false;
+      this.emptyObj(this.formData);
+      this.fuzzyNameList.options = [];
+      this.selectedOptions = [];
+    },
     remoteMethod(query) {
-      if (query !== '') {
+      if (query != '') {
         this.fuzzyNameList.loading = true;
         getFuzzyInfo({realname: query}).then(resp => {
           this.fuzzyNameList.loading = false;
-          console.log(resp);
           let data = resp.data;
-          console.log(data);
           data.forEach((item,index) => {
             this.fuzzyNameList.options[index] = {
               value: data[index].realname,
@@ -363,9 +362,22 @@ export default {
       this.getList()
     },
     handleModifyStatus(row, status) {
-      this.$message({
-        message: '操作成功',
-        type: 'success'
+      if (status === '完成') {
+
+      }
+      console.log(row);
+      let orderId = row.order.order_id;
+      updateOrder({orderId: orderId}).then(response => {
+        if (response.state === 1) {
+          this.$message({
+            message: '操作成功',
+            type: 'success'
+          })
+          switch (status) {
+            case '未付款':
+
+          }
+        }
       })
       row.status = status
     },

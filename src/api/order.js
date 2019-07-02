@@ -39,11 +39,11 @@ export function createArticle(data) {
   })
 }
 
-export function updateArticle(data) {
+export function updateOrder(params) {
   return request({
     url: '/order/update',
     method: 'post',
-    data
+    params
   })
 }
 
@@ -53,3 +53,5 @@ export function getAddr_name() {
     method:'get',
   })
 }
+
+
