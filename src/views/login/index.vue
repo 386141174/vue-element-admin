@@ -237,7 +237,14 @@
             .then((res) => {
               if (res.state === 1) {
                 console.log(res);
-                this.$router.push({ path: this.redirect, query: this.otherQuery })
+                this.$store.dispatch('user/faceLogin',this.loginForm)
+                  .then(() => {
+                    this.$router.push({ path: this.redirect || '/', query: this.otherQuery })
+                    this.loading = false
+                  })
+                  .catch(() => {
+                    this.loading = false
+                  })
 
               }
               this.loading = false;

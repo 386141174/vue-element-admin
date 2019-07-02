@@ -1,4 +1,4 @@
-import { getInfo, logout } from '@/api/user'
+import { faceLogin, getInfo, logout } from '@/api/user'
 import { getToken, removeToken, setToken } from '@/utils/auth'
 import router, { resetRouter } from '@/router'
 
@@ -29,20 +29,21 @@ const mutations = {
 }
 
 const actions = {
-  // user login
-  // login({ commit }, userInfo) {
-  //   const { username, password } = userInfo
-  //   return new Promise((resolve, reject) => {
-  //     login({ username: username.trim(), password: password }).then(response => {
-  //       const { data } = response
-  //       commit('SET_TOKEN', data.token)
-  //       setToken(data.token)
-  //       resolve()
-  //     }).catch(error => {
-  //       reject(error)
-  //     })
-  //   })
-  // },
+  //user login
+  faceLogin({ commit }, userInfo) {
+    const { username, snapData } = userInfo
+    return new Promise((resolve, reject) => {
+      faceLogin({ username: username, snapData: snapData }).then(response => {
+        const { data } = response
+        commit('SET_TOKEN', data.token)
+        setToken(data.token)
+        resolve()
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+
 
   // get user info
   getInfo({ commit, state }) {
