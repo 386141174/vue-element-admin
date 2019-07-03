@@ -1,69 +1,79 @@
 <template>
   <div class="app-container">
     <!-- Note that row-key is necessary to get a correct row order. -->
-    <el-table ref="dragTable" v-loading="listLoading" :data="list" row-key="id" border fit highlight-current-row style="width: 100%">
+    <el-table ref="dragTable"  :data="list" row-key="id" border fit highlight-current-row style="width: 1320px">
       <el-table-column align="center" label="ID" width="65">
         <template slot-scope="scope">
-          <span>{{ scope.row.id }}</span>
+          <span>{{ scope.row.user_id}}</span>
         </template>
       </el-table-column>
 
-      <el-table-column width="180px" align="center" label="Date">
+      <el-table-column width="250px" align="center" label="用户名">
         <template slot-scope="scope">
-          <span>{{ scope.row.timestamp | parseTime('{y}-{m}-{d} {h}:{i}') }}</span>
+          <span>{{ scope.row.realname}}</span>
         </template>
       </el-table-column>
 
-      <el-table-column min-width="300px" label="Title">
+      <el-table-column width="300px" align="center" label="用户头像">
         <template slot-scope="scope">
-          <span>{{ scope.row.title }}</span>
+          <img :src="scope.row.head_img">
         </template>
       </el-table-column>
 
-      <el-table-column width="110px" align="center" label="Author">
+      <el-table-column width="200px" align="center" label="用户积分">
         <template slot-scope="scope">
-          <span>{{ scope.row.author }}</span>
+          <span>{{ scope.row.integral }}</span>
         </template>
       </el-table-column>
 
-      <el-table-column width="100px" label="Importance">
+      <el-table-column width="200px" align="center" label="创建时间">
         <template slot-scope="scope">
-          <svg-icon v-for="n in +scope.row.importance" :key="n" icon-class="star" class="icon-star" />
+          <span>{{ scope.row.add_time }}</span>
         </template>
       </el-table-column>
 
-      <el-table-column align="center" label="Readings" width="95">
+      <el-table-column align="center" label="状态" width="95">
         <template slot-scope="scope">
-          <span>{{ scope.row.pageviews }}</span>
+          <span>{{ scope.row.status }}</span>
         </template>
       </el-table-column>
 
-      <el-table-column class-name="status-col" label="Status" width="110">
+      <el-table-column class-name="status-col" label="国籍" width="110">
         <template slot-scope="{row}">
-          <el-tag :type="row.status | statusFilter">
-            {{ row.status }}
+          <el-tag :type="row.status">
+            {{ row.country }}
           </el-tag>
         </template>
       </el-table-column>
 
-      <el-table-column align="center" label="Drag" width="80">
-        <template slot-scope="{}">
-          <svg-icon class="drag-handler" icon-class="drag" />
+      <el-table-column align="center" label="城市" width="100px">
+        <template slot-scope="scope">
+         <span>{{scope.row.cityName}}</span>
         </template>
       </el-table-column>
     </el-table>
-    <!-- $t is vue-i18n global function to translate lang (lang in @/lang)  -->
-    <div class="show-d">
-      <el-tag style="margin-right:12px;">{{ $t('table.dragTips1') }} :</el-tag> {{ oldList }}
-    </div>
-    <div class="show-d">
-      <el-tag>{{ $t('table.dragTips2') }} :</el-tag> {{ newList }}
+<!--     $t is vue-i18n global function to translate lang (lang in @/lang)  -->
+<!--    <div class="show-d">-->
+<!--      <el-tag style="margin-right:12px;">{{ $t('table.dragTips1') }} :</el-tag> {{ oldList }}-->
+<!--    </div>-->
+<!--    <div class="show-d">-->
+<!--      <el-tag>{{ $t('table.dragTips2') }} :</el-tag> {{ newList }}-->
+<!--    </div>-->
+    <div class="block">
+      <el-pagination
+        @current-change="handleCurrentChange"
+        :current-page="currentPage"
+        :page-size="pageSize"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total">
+      </el-pagination>
     </div>
   </div>
 </template>
 
 <script>
 import { fetchList } from '@/api/order'
+import {ClientUserSupervise} from '@/api/user'
 import Sortable from 'sortablejs'
 
 export default {
@@ -82,14 +92,17 @@ export default {
     return {
       list: null,
       total: null,
-      listLoading: true,
+
       listQuery: {
-        page: 1,
-        limit: 10
+        startPage: 1,
+        pageSize: 10
       },
       sortable: null,
       oldList: [],
-      newList: []
+      newList: [],
+      currentPage:0,
+      total:0,
+      pageSize:0
     }
   },
   created() {
@@ -97,16 +110,14 @@ export default {
   },
   methods: {
     async getList() {
-      this.listLoading = true
-      const { data } = await fetchList(this.listQuery)
-      this.list = data.items
-      this.total = data.total
-      this.listLoading = false
-      this.oldList = this.list.map(v => v.id)
-      this.newList = this.oldList.slice()
-      this.$nextTick(() => {
-        this.setSort()
-      })
+      const { data } = await ClientUserSupervise(this.listQuery)
+      this.list = data.items;
+      this.total = data.total;
+      this.oldList = this.list.map(v => v.id);
+      this.newList = this.oldList.slice();
+      // this.$nextTick(() => {
+      //   this.setSort()
+      // })
     },
     setSort() {
       const el = this.$refs.dragTable.$el.querySelectorAll('.el-table__body-wrapper > table > tbody')[0]
@@ -125,6 +136,14 @@ export default {
           const tempIndex = this.newList.splice(evt.oldIndex, 1)[0]
           this.newList.splice(evt.newIndex, 0, tempIndex)
         }
+      })
+    },
+    handleCurrentChange(val) {
+      this.listQuery.startPage = val;
+      ClientUserSupervise(this.listQuery).then( result =>{
+        this.list = result.data.items
+        this.total = result.data.total;
+        this.pageSize = result.data.pageSize;
       })
     }
   }

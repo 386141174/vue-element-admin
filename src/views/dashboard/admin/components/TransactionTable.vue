@@ -38,7 +38,11 @@ export default {
   },
   data() {
     return {
-      list: null
+      list: null,
+      page:{
+        startPage:1,
+        pageSize:10
+      }
     }
   },
   created() {
@@ -46,8 +50,9 @@ export default {
   },
   methods: {
     fetchData() {
-      transactionList().then(response => {
-        this.list = response.data.slice(0, 8)
+      console.log(this.page)
+      transactionList(this.page).then(response => {
+        this.list = response.data.slice(0,8)
       })
     }
   }

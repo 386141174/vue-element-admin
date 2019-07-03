@@ -13,11 +13,7 @@ export function faceLogin(params) {
     url: 'user/faceLogin',
     method: 'post',
     params,
-    headers: {
-      'content-type': 'multipart/form-data',
-      'processData':false,
-      'cache': false
-    }
+
   })
 }
 
@@ -42,4 +38,13 @@ export function getFuzzyInfo(query) {
     method: 'get',
     params: query,
   })
+}
+
+export function ClientUserSupervise(params) {
+  return request({
+    url:'/transaction/ClientUser',
+    method:'get',
+    params
+  })
+
 }

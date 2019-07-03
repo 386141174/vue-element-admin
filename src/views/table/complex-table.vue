@@ -1,5 +1,5 @@
  <template>
-  <div class="app-container">
+  <div class="app-container" v-title data-title = "订单管理">
     <div class="filter-container">
       <el-input v-model="listQuery.title" :placeholder="$t('table.title')" style="width: 200px;" class="filter-item" @keyup.enter.native="handleFilter" />
 
@@ -451,14 +451,11 @@ export default {
       mapCoordinate(row.user.cityName).then(result =>{
         this.startCenter.lng = result.data.lng;
         this.startCenter.lat = result.data.lat;
-
-      })
+      });
       mapCoordinate(row.order.addr_name).then(result =>{
         this.endCenter.lng = result.data.lng;
         this.endCenter.lat = result.data.lat;
-
-
-      })
+      });
 
       this.dialogStatus = '地图'
       this.dialogFormVisible = true

@@ -8,11 +8,11 @@ export function searchUser(name) {
   })
 }
 
-export function transactionList() {
+export function transactionList(params) {
   return request({
     url: '/transaction/list',
-    method: 'get',
-
+    method: 'post',
+    params
   })
 }
 

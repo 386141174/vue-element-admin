@@ -1,5 +1,5 @@
 <template>
-<div class="form">
+<div class="form" v-title data-title = "商品管理">
   <div>
     <el-input v-model="goodsList.title" placeholder="请输入内容" style="width: 200px;"></el-input>
     <template>
@@ -20,7 +20,7 @@
     style="width: 100%"
   >
     <el-table-column type="expand">
-      <template slot-scope="props">
+      <template slot-scope="props" >
         <el-form label-position="left" inline class="demo-table-expand">
           <el-form-item label="商品名称">
             <span>{{ props.row.goods_name}}</span>
@@ -41,7 +41,7 @@
             <span>{{ props.row.goods_price}}</span>
           </el-form-item>
           <el-form-item label="商品描述">
-            <img :src="'http://localhost:8080'+props.row.goods_img">
+            <img :src="'http://localhost:8080'+props.row.goods_img"    style="width: 200px" >
           </el-form-item>
         </el-form>
       </template>
@@ -106,8 +106,8 @@
             action="http://localhost:8080/api/goods/insertGoods"
             list-type="picture-card"
             :on-preview="handlePictureCardPreview"
+            ref='upload'
             :auto-upload="false"
-
             name="goods_img"
             :on-change="change"
             :limit="1"
@@ -220,7 +220,6 @@
         currentPage1:'',
         total:0,
         tableData: [],
-
         dialogFormVisible: false,
         dialogFormDelete:false,
         form: {
@@ -267,7 +266,7 @@
 
       },
       change(file){
-        console.log("file",file.url)
+
         this.imageUrl = file.raw
       },
       handleRemove(file, fileList) {
@@ -275,7 +274,7 @@
       },
       handlePictureCardPreview(file) {
         this.dialogImageUrl = file.url;
-        this.dialogVisible = true;
+        // this.dialogVisible = true;
       },
       addGoods(){
         let params = new FormData();
@@ -292,7 +291,7 @@
         params.append("goods_img",goods_img);
         console.log(params.get("goods_img"))
         addGoods(params).then( request =>{
-          console.log(request)
+
           if(request.state ===1){
             this.$notify({
               title: '成功',
@@ -300,6 +299,8 @@
               type: 'success',
               duration: 2000
             })
+            this.form = Object.assign({},this.$options.form);
+            this.$refs.upload.clearFiles();
             this.selectGoods()
           }
         })
@@ -310,6 +311,7 @@
         this.dialogFormDelete = false
         deleteGoods(this.deleteGoods).then( result =>{
           if(result.state === 1){
+
             this.selectGoods()
             this.$notify({
               title: '成功',
@@ -339,3 +341,8 @@
 
   }
 </script>
+<style>
+  body {
+    margin: 0;
+  }
+</style>

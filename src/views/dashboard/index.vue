@@ -1,5 +1,5 @@
 <template>
-  <div class="dashboard-container" v-title data-title = "天津顺水物流管理-首页">
+  <div class="dashboard-container" v-title data-title = "首页">
     <component :is="currentRole" />
   </div>
 </template>

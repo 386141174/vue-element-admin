@@ -11,7 +11,7 @@ export function fetchList(query) {
 export function fetchArticle(id) {
   return request({
     url: '/order/detail',
-    method: 'get',
+    method: 'post',
     params: { id }
   })
 }
