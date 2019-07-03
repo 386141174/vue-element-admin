@@ -22,7 +22,7 @@
           <div class="card-panel-text">
             库存数量
           </div>
-          <count-to :start-val="0" :end-val="81212" :duration="3000" class="card-panel-num" />
+          <count-to :start-val="0" :end-val="125" :duration="3000" class="card-panel-num" />
         </div>
       </div>
     </el-col>
@@ -35,7 +35,7 @@
           <div class="card-panel-text">
             现金流水
           </div>
-          <count-to :start-val="0" :end-val="20000" :duration="3200" class="card-panel-num" />
+          <count-to :start-val="0" :end-val="1531" :duration="3200" class="card-panel-num" />
         </div>
       </div>
     </el-col>
@@ -48,7 +48,7 @@
           <div class="card-panel-text">
             交易订单
           </div>
-          <count-to :start-val="0" :end-val="13600" :duration="3600" class="card-panel-num" />
+          <count-to :start-val="0" :end-val="50" :duration="3600" class="card-panel-num" />
         </div>
       </div>
     </el-col>

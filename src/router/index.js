@@ -3,7 +3,7 @@ import Router from 'vue-router'
 /* Layout */
 import Layout from '@/layout'
 /* Router Modules */
-import componentsRouter from './modules/components'
+// import componentsRouter from './modules/components'
 import chartsRouter from './modules/charts'
 import tableRouter from './modules/table'
 import nestedRouter from './modules/nested'
@@ -64,6 +64,7 @@ export const constantRoutes = [
     component: () => import('@/views/error-page/401'),
     hidden: true
   },
+
   {
     path: '/',
     component: Layout,
@@ -77,18 +78,6 @@ export const constantRoutes = [
       }
     ]
   },
-  // {
-  //   path: '/documentation',
-  //   component: Layout,
-  //   children: [
-  //     {
-  //       path: 'index',
-  //       component: () => import('@/views/documentation/index'),
-  //       name: 'Documentation',
-  //       meta: { title: 'documentation', icon: 'documentation', affix: true }
-  //     }
-  //   ]
-  // },
   {
     path: '/guide',
     component: Layout,
@@ -102,6 +91,62 @@ export const constantRoutes = [
       }
     ]
   },
+  {
+    path: '/users',
+    component: Layout,
+    children: [
+      {
+        path: 'drag-table',
+        component: () => import('@/views/table/drag-table'),
+        name: 'DragTable',
+        meta: { title: '用户管理' ,icon:'user'}
+      },
+    ]
+  },
+  {
+    path: '/goods',
+    component: Layout,
+    children: [
+      {
+        // path: 'dynamic-table',
+        // component: () => import('@/views/documentation/index'),
+        // name: 'Documentation',
+        // meta: { title: 'documentation', icon: 'documentation', affix: true }
+        path: 'dynamic-table',
+          component: () => import('@/views/table/dynamic-table/index'),
+          name: 'DynamicTable',
+          meta: { title: '商品管理' ,icon: 'goods'}
+      }
+    ]
+  },
+  {
+    path: '/order',
+    component: Layout,
+    children: [
+      {
+        path: 'complex-table',
+        component: () => import('@/views/table/complex-table'),
+        name: 'ComplexTable',
+        meta: { title: '订单管理',icon: 'documentation' },
+        // children: [
+        //   {
+        //     path:'mapForGoods',
+        //     component:() => import('@/views/table/mapForGoods'),
+        //     name:"mapForGoods"
+        //   }
+        // ]
+      },
+    ]
+  },
+
+
+  // {
+  //   path: 'dynamic-table',
+  //   component: () => import('@/views/table/dynamic-table/index'),
+  //   name: 'DynamicTable',
+  //   meta: { title: '商品管理' }
+  // },
+
   {
     path: '/profile',
     component: Layout,
@@ -123,67 +168,67 @@ export const constantRoutes = [
  * the routes that need to be dynamically loaded based on user roles
  */
 export const asyncRoutes = [
-  {
-    path: '/permission',
-    component: Layout,
-    redirect: '/permission/page',
-    alwaysShow: true, // will always show the root menu
-    name: 'Permission',
-    meta: {
-      title: 'permission',
-      icon: 'lock',
-      roles: ['admin', 'editor'] // you can set roles in root nav
-    },
-    children: [
-      {
-        path: 'page',
-        component: () => import('@/views/permission/page'),
-        name: 'PagePermission',
-        meta: {
-          title: 'pagePermission',
-          roles: ['admin'] // or you can only set roles in sub nav
-        }
-      },
-      {
-        path: 'directive',
-        component: () => import('@/views/permission/directive'),
-        name: 'DirectivePermission',
-        meta: {
-          title: 'directivePermission'
-          // if do not set roles, means: this page does not require permission
-        }
-      },
-      {
-        path: 'role',
-        component: () => import('@/views/permission/role'),
-        name: 'RolePermission',
-        meta: {
-          title: 'rolePermission',
-          roles: ['admin']
-        }
-      }
-    ]
-  },
+  // {
+  //   path: '/permission',
+  //   component: Layout,
+  //   redirect: '/permission/page',
+  //   alwaysShow: true, // will always show the root menu
+  //   name: 'Permission',
+  //   meta: {
+  //     title: 'permission',
+  //     icon: 'lock',
+  //     roles: ['admin', 'editor'] // you can set roles in root nav
+  //   },
+  //   children: [
+  //     {
+  //       path: 'page',
+  //       component: () => import('@/views/permission/page'),
+  //       name: 'PagePermission',
+  //       meta: {
+  //         title: 'pagePermission',
+  //         roles: ['admin'] // or you can only set roles in sub nav
+  //       }
+  //     },
+  //     {
+  //       path: 'directive',
+  //       component: () => import('@/views/permission/directive'),
+  //       name: 'DirectivePermission',
+  //       meta: {
+  //         title: 'directivePermission'
+  //         // if do not set roles, means: this page does not require permission
+  //       }
+  //     },
+  //     {
+  //       path: 'role',
+  //       component: () => import('@/views/permission/role'),
+  //       name: 'RolePermission',
+  //       meta: {
+  //         title: 'rolePermission',
+  //         roles: ['admin']
+  //       }
+  //     }
+  //   ]
+  // },
 
-  {
-
-    path: '/icon',
-    component: Layout,
-    children: [
-      {
-        path: 'index',
-        component: () => import('@/views/icons/index'),
-        name: 'Icons',
-        meta: { title: 'icons', icon: 'icon', noCache: true }
-      }
-    ]
-  },
+  // {
+  //
+  //   path: '/icon',
+  //   component: Layout,
+  //   children: [
+  //     {
+  //       path: 'index',
+  //       component: () => import('@/views/icons/index'),
+  //       name: 'Icons',
+  //       meta: { title: 'icons', icon: 'icon', noCache: true }
+  //     }
+  //   ]
+  // },
 
   /** when your routing map is too long, you can split it into small modules **/
-  componentsRouter,
-  chartsRouter,
-  nestedRouter,
-  tableRouter,
+  // componentsRouter,
+  // chartsRouter,
+  // nestedRouter,
+  // tableRouter,
 
   // {
   //   path: '/example',

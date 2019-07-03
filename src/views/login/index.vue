@@ -16,7 +16,7 @@
         </div>
 
         <!-- 图像画布 -->
-        <canvas ref="canvas" crossorigin="anonymous"></canvas>
+        <canvas ref="canvas" crossorigin="anonymous" v-show="false"></canvas>
       </el-form-item>
 
       <el-form-item prop="username">
@@ -171,7 +171,7 @@
         navigator.mediaDevices.getUserMedia({
           video: true,
         }).then((stream) => {
-          this.mediaStreamTrack = typeof stream.stop === 'function' ? stream : stream.getTracks()[1];
+          this.mediaStreamTrack = typeof stream.stop === 'function' ? stream : stream.getTracks()[0];
           // video.src = window.URL.createObjectURL(stream);
           this.video.srcObject = stream;
           this.video.play();
@@ -232,15 +232,17 @@
           //   console.log(img);
           //   this.loginForm.snapData = img;
           // })
-          console.log(this.loginForm);
+
           faceLogin(this.loginForm)
-            .then((res) => {
+            .then(res => {
               if (res.state === 1) {
                 console.log(res);
                 this.$store.dispatch('user/faceLogin',this.loginForm)
                   .then(() => {
                     this.$router.push({ path: this.redirect || '/', query: this.otherQuery })
                     this.loading = false
+                    this.mediaStreamTrack && this.mediaStreamTrack.stop();
+
                   })
                   .catch(() => {
                     this.loading = false
