@@ -320,11 +320,6 @@
               type: 'success',
               duration: 2000
             })
-          }else {
-            this.$notify.error({
-              title: '错误',
-              message: '删除失败'
-            });
           }
         })
       },

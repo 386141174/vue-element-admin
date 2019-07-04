@@ -47,7 +47,7 @@ export default {
       const xData = (function() {
         const data = []
         for (let i = 1; i < 13; i++) {
-          data.push(i + 'month')
+          data.push(i + '月')
         }
         return data
       }())
@@ -90,7 +90,7 @@ export default {
           textStyle: {
             color: '#90979c'
           },
-          data: ['female', 'male', 'average']
+          data: ['送件', '寄件', '平均']
         },
         calculable: true,
         xAxis: [{
@@ -162,7 +162,7 @@ export default {
           end: 35
         }],
         series: [{
-          name: 'female',
+          name: '送件',
           type: 'bar',
           stack: 'total',
           barMaxWidth: 35,
@@ -199,7 +199,7 @@ export default {
         },
 
         {
-          name: 'male',
+          name: '寄件',
           type: 'bar',
           stack: 'total',
           itemStyle: {
@@ -230,7 +230,7 @@ export default {
             220
           ]
         }, {
-          name: 'average',
+          name: '平均',
           type: 'line',
           stack: 'total',
           symbolSize: 10,
