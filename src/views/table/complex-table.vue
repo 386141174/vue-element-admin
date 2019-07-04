@@ -60,13 +60,13 @@
           <span>{{ scope.row.order.add_time | parseTime('{y}-{m}-{d} {h}:{i}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="状态" class-name="status-col" width="100px">
-        <template slot-scope="{row}">
-          <el-tag :type="row.status | statusFilter">
-            {{ row.status }}
-          </el-tag>
-        </template>
-      </el-table-column>
+<!--      <el-table-column label="状态" class-name="status-col" width="100px">-->
+<!--        <template slot-scope="{row}">-->
+<!--          <el-tag :type="row.status | statusFilter">-->
+<!--            {{ row.status }}-->
+<!--          </el-tag>-->
+<!--        </template>-->
+<!--      </el-table-column>-->
       <el-table-column label="操作" align="center" width="400" class-name="small-padding fixed-width">
         <template slot-scope="{row}">
           <el-button type="primary" size="mini" @click="handleUpdate(row)">
@@ -225,14 +225,13 @@ export default {
         lng: 116.404, lat: 39.915
       },
       endCenter:{
-        lng:null,
-        lat:null
+        lng:undefined,
+        lat:undefined
       },
       startCenter:{
-        lng:null,
-        lat:null
+        lng:undefined,
+        lat:undefined
       },
-      lat:'',
       play: true,
       path: [],
       icon: {
@@ -307,7 +306,7 @@ export default {
 
   methods: {
     updatePolylinePath (e) {
-      this.polylinePath = e.target.getPath()
+      // this.polylinePath = e.target.getPath()
     },
     handleSearchComplete (res) {
       this.path = res.getPlan(0).getRoute(0).getPath()

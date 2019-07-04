@@ -40,7 +40,7 @@
           <el-form-item label="商品价格">
             <span>{{ props.row.goods_price}}</span>
           </el-form-item>
-          <el-form-item label="商品描述">
+          <el-form-item label="商品描述" >
             <img :src="'http://localhost:8080'+props.row.goods_img"    style="width: 200px" >
           </el-form-item>
         </el-form>
@@ -310,8 +310,9 @@
       deleteGoods_name(){
         this.dialogFormDelete = false
         deleteGoods(this.deleteGoods).then( result =>{
-          if(result.state === 1){
 
+          if(result.state === 1){
+            this.deleteGoods = Object.assign({},this.$options.deleteGoods)
             this.selectGoods()
             this.$notify({
               title: '成功',
@@ -319,6 +320,11 @@
               type: 'success',
               duration: 2000
             })
+          }else {
+            this.$notify.error({
+              title: '错误',
+              message: '删除失败'
+            });
           }
         })
       },
